@@ -1,11 +1,18 @@
 package ethier.alex.resistance;
 
-import ethier.alex.world.core.data.Partition;
-import ethier.alex.world.sudoku.Sudoku;
+import java.util.Collection;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import ethier.alex.world.core.data.ElementList;
+import ethier.alex.world.core.data.Partition;
+import ethier.alex.world.core.processor.Processor;
+import ethier.alex.world.core.processor.SimpleProcessor;
+import ethier.alex.world.sudoku.Sudoku;
+
 
 /**
 
@@ -21,7 +28,7 @@ public class SudokuTest {
     }
 
     @Test
-    public void testBasicResistance1() throws Exception {
+    public void testSimpleSuduko() throws Exception {
         System.out.println("");
         System.out.println("");
         System.out.println("********************************************");
@@ -29,18 +36,33 @@ public class SudokuTest {
         System.out.println("********************************************");
         System.out.println("");
         System.out.println("");
-
-        int[][] world = new int[4][4];
         
-        for(int row = 0; row < 4; row++) {
-            for(int col = 0; col < 4; col++) {
+        int boxLength = 2;
+        
+        int boardLength = boxLength*boxLength;
+
+        int[][] world = new int[boardLength][boardLength];
+        
+        for(int row = 0; row < boardLength; row++) {
+            for(int col = 0; col < boardLength; col++) {
                 world[row][col] = 0;
             }
         }
         
-        world[0][0] = 1;
+//        world[0][0] = 1;
         
         Sudoku game = new Sudoku(world);
         Partition partition = game.createRootPartition();
+        
+        Processor processor = new SimpleProcessor(partition);
+        processor.runAll();
+        
+        Collection<ElementList> completedPartitions = processor.getCompletedPartitions();
+        
+        for(ElementList completePartition : completedPartitions) {
+        	System.out.println("Found completed partition: " + completePartition);
+        }
+        
+        System.out.println("Number of possibilities: " + completedPartitions.size());
     }
 }

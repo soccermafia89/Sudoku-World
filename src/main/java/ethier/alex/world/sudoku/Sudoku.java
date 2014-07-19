@@ -26,12 +26,6 @@ TODO: PLANS
 -Come up with a recursive way to continually guess more cells if needed.  Guesses need to keep track of their state
     so that they can properly be rolled back if determined to be invalid.
 
--Instead of inferencing new filters.  
-    And then running through a try of guesses,
-    Remove all static filters:
-        -remove all cases where two of the same number exist on the same row, col, box, etc.
-        
-
 */
 public final class Sudoku {
     
@@ -55,117 +49,78 @@ public final class Sudoku {
             radices[i] = boardLength;
         }
         
-        this.applyStaticFilters();
+        this.applyStaticFilters(); // Filters that are true regardless of game.
         
-        this.applyDefiniteFilters(initialWorld);
-        this.applyRowFilters(initialWorld);
-        this.applyColFilters(initialWorld);
-        this.applyBoxFilters(initialWorld);
+        this.applyDefiniteFilters(initialWorld); // Filters that are true specific to a board.
+//        this.applyRowFilters(initialWorld);
+//        this.applyColFilters(initialWorld);
+//        this.applyBoxFilters(initialWorld);
     }
     
     public void applyStaticFilters() {
-        logger.error("TODO:NOT FINISHED IMPLEMENTATION");
-        this.applyStaticRowFilters();
-        this.applyStaticColFilters();
+        this.applyStaticRowColFilters();
         this.applyStaticBoxFilters();
     }
     
-    public void applyStaticRowFilters() {
-        // First generate a base set of offsets, then update them for each column and value.
-        
-        // Now transform the offsets for all the cases we need.
-        for(int value=0; value < boardLength; value++) {
-            for(int col=0; col < boardLength; col++) {
-                logger.error("TODO:NOT FINISHED IMPLEMENTATION");
-            }
-        }
+    // Apply the suduko rule that you can't have two of the same value within a row or col.
+    public void applyStaticRowColFilters() {
+    	
+    	for(int value=0; value < boardLength; value++) {
+    		for(int col=0; col < boardLength; col++) {
+		    	for(int rowOffset1=0; rowOffset1 < boardLength -1; rowOffset1++) {
+		    		
+	    			int staticRowOffset1 = this.getOffset(rowOffset1, col);
+	    			int staticColOffset1 = this.getOffset(col, rowOffset1);
+		    		
+		    		for (int rowOffset2=rowOffset1 + 1; rowOffset2 < boardLength; rowOffset2++) {
+		    			int staticRowOffset2 = this.getOffset(rowOffset2, col);
+	    				FilterList filter = this.quickCreateFilter(value, staticRowOffset1, staticRowOffset2);
+	    				logger.info("Adding static row filter: " + filter);
+	    				filters.add(filter);	
+		    			
+	    				// We can also cheat and get the col offset here by swapping the rows and cols.
+		    			int staticColOffset2 = this.getOffset(col, rowOffset2);
+	    				FilterList filter2 = this.quickCreateFilter(value, staticColOffset1, staticColOffset2);
+	    				logger.info("Adding static col filter: " + filter2);
+	    				filters.add(filter2);	
+		
+		    		}
+		    	}
+    		}
+    	}
     }
     
-    public void applyStaticColFilters() {
-        
-    }
-    
+    // Apply the suduko rule that you can't have two of the same value within a box.
     public void applyStaticBoxFilters() {
-        
+    	for(int value = 0; value < boardLength; value++) {
+	        for(int box = 0; box < boardLength; box++) {
+	        	for(int localBoxOffset1 = 0; localBoxOffset1 < boardLength -1; localBoxOffset1++) {
+	    			
+	        		int offset1 = this.getGlobalBoxOffset(box, localBoxOffset1);
+	
+	        		for(int localBoxOffset2 = localBoxOffset1 + 1; localBoxOffset2 < boardLength; localBoxOffset2++) {
+	        			int offset2 = this.getGlobalBoxOffset(box, localBoxOffset2);
+	    				FilterList filter = this.quickCreateFilter(value, offset1, offset2);
+	    				logger.info("Adding static box filter: " + filter);
+	    				filters.add(filter);	
+	        		}
+	        	}
+	        }
+    	}
     }
     
-    public void applyBoxFilters(int[][] initialWorld) {
-        for(int row = 0;row < initialWorld.length;row++) {
-            for(int col = 0;col < initialWorld.length;col++) {
-                int value = initialWorld[row][col];
-                                
-                if(value == 0) {
-                    
-                    int pos = this.getOffset(row, col);
-                    
-                    //Get the position of the upper left box
-                    int boxColPos = col - (col % boxLength);
-                    int boxRowPos = row - (row % boxLength);
-                    int boxPos = boxRowPos + boardLength*boxColPos;
-                    
-                    for(int boxRow=0; boxRow < boxLength;boxRow++) {
-                        for(int boxCol=0; boxCol < boxLength;boxCol++) {
-                            int offset = boxPos + boxRow + boardLength*boxCol;
-                            
-                            if(offset != pos) {
-                                FilterList newFilter = this.quickCreateFilter(value, offset);
-                                logger.info("Adding definite box filter: " + newFilter);
-                                filters.add(newFilter);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    public void applyColFilters(int[][] initialWorld) {
-        for(int row = 0;row < initialWorld.length;row++) {
-            for(int col = 0;col < initialWorld.length;col++) {
-                int value = initialWorld[row][col];
-                
-                if(value == 0) {
-                    
-                    for(int i=0;i < boardLength;i++) {
-                        int offset = this.getOffset(row, col);
-                        FilterList newFilter = this.quickCreateFilter(value, offset);
-                        logger.info("Adding definite col filter: " + newFilter);
-                        filters.add(newFilter);
-                    }
-                }
-            }
-        }
-    }
-    
-    public void applyRowFilters(int[][] initialWorld) {
-        for(int row = 0;row < initialWorld.length;row++) {
-            for(int col = 0;col < initialWorld.length;col++) {
-                int value = initialWorld[row][col];
-                
-                if(value == 0) {
-                    
-                    for(int filterRow=0;filterRow < boardLength;filterRow++) {
-                        int offset = this.getOffset(filterRow, col);
-                        FilterList newFilter = this.quickCreateFilter(value, offset);
-                        logger.info("Adding definite row filter: " + newFilter);
-                        filters.add(newFilter);
-                    }
-                }
-            }
-        }
-    }
-    
+    // Apply filters containing the information of given preset tiles.
     public void applyDefiniteFilters(int[][] initialWorld) {
         for(int row = 0;row < initialWorld.length;row++) {
             for(int col = 0;col < initialWorld.length;col++) {
-                int value = initialWorld[row][col];
+                int definedValue = initialWorld[row][col];
                 
-                if(value == 0) {
-                    for(int i=0; i < boardLength;i++) {
-                        if( (i + 1) != value) {
-                            int offset = row + col*initialWorld[row].length;
-                            FilterList newFilter = this.quickCreateFilter(value, offset);
-                            logger.info("Adding definite filter: " + newFilter);
+                if(definedValue != 0) {
+                    for(int filterValue=0; filterValue < boardLength;filterValue++) {
+                        if( filterValue != definedValue) {
+                            int offset = this.getOffset(row, col);
+                            FilterList newFilter = this.quickCreateFilter(filterValue, offset);
+                            logger.info("Adding dynamic world filter: " + newFilter);
                             filters.add(newFilter);
                         }
                     }
@@ -173,6 +128,89 @@ public final class Sudoku {
             }
         }
     }
+    
+//    public void applyStaticColFilters() {
+//    	for(int value=0; value < boardLength; value++) {
+//    		for(int row=0; row < boardLength; row++) {
+//		    	for(int colOffset1=0; colOffset1 < boardLength -1; colOffset1++) {
+//		    		for (int colOffset2=colOffset1 + 1; colOffset2 < boardLength -1; colOffset2++) {
+//		    			int offset1 = this.getOffset(row, colOffset1);
+//		    			int offset2 = this.getOffset(row, colOffset2);
+//	    				FilterList filter = this.quickCreateFilter(value, offset1, offset2);
+//	    				logger.info("Adding static col filter: " + filter);
+//	    				filters.add(filter);			
+//		    		}
+//		    	}
+//    		}
+//    	}
+//    }
+    
+    
+//    public void applyBoxFilters(int[][] initialWorld) {
+//        for(int row = 0;row < initialWorld.length;row++) {
+//            for(int col = 0;col < initialWorld.length;col++) {
+//                int value = initialWorld[row][col];
+//                                
+//                if(value == 0) {
+//                    
+//                    int pos = this.getOffset(row, col);
+//                    
+//                    //Get the position of the upper left box
+//                    int boxColPos = col - (col % boxLength);
+//                    int boxRowPos = row - (row % boxLength);
+//                    int boxPos = boxRowPos + boardLength*boxColPos;
+//                    
+//                    for(int boxRow=0; boxRow < boxLength;boxRow++) {
+//                        for(int boxCol=0; boxCol < boxLength;boxCol++) {
+//                            int offset = boxPos + boxRow + boardLength*boxCol;
+//                            
+//                            if(offset != pos) {
+//                                FilterList newFilter = this.quickCreateFilter(value, offset);
+//                                logger.info("Adding definite box filter: " + newFilter);
+//                                filters.add(newFilter);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+    
+//    public void applyColFilters(int[][] initialWorld) {
+//        for(int row = 0;row < initialWorld.length;row++) {
+//            for(int col = 0;col < initialWorld.length;col++) {
+//                int value = initialWorld[row][col];
+//                
+//                if(value == 0) {
+//                    
+//                    for(int i=0;i < boardLength;i++) {
+//                        int offset = this.getOffset(row, col);
+//                        FilterList newFilter = this.quickCreateFilter(value, offset);
+//                        logger.info("Adding definite col filter: " + newFilter);
+//                        filters.add(newFilter);
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    
+//    public void applyRowFilters(int[][] initialWorld) {
+//        for(int row = 0;row < initialWorld.length;row++) {
+//            for(int col = 0;col < initialWorld.length;col++) {
+//                int value = initialWorld[row][col];
+//                
+//                if(value == 0) {
+//                    
+//                    for(int filterRow=0;filterRow < boardLength;filterRow++) {
+//                        int offset = this.getOffset(filterRow, col);
+//                        FilterList newFilter = this.quickCreateFilter(value, offset);
+//                        logger.info("Adding definite row filter: " + newFilter);
+//                        filters.add(newFilter);
+//                    }
+//                }
+//            }
+//        }
+//    }
     
     public Partition createRootPartition() {
         
@@ -187,10 +225,37 @@ public final class Sudoku {
         return row + boardLength*col;
     }
     
+    public int getBox(int row, int col) {
+    	int offset = this.getOffset(row, col);
+    	return offset / boardLength;
+    }
+    
+    public int getLocalBoxOffset(int row, int col) {
+    	int offset = this.getOffset(row, col);
+    	return offset % boardLength;
+    }
+    
+    // Boxes are counted the same way as tiles, left to right, then top bottom.
+    // Offsets within boxes are also counted the same way.
+    public int getGlobalBoxOffset(int box, int boxOffset) {
+    	return boxOffset + box*boardLength;
+    }
+    
     public FilterList quickCreateFilter(int value, int offset) {
         String filterStr = StringUtils.leftPad("", radices.length, "*");
         filterStr = filterStr.substring(0, offset) + value + filterStr.substring(offset + 1);
 
+
+        return FilterListBuilder.newInstance()
+                .setQuick(filterStr)
+                .getFilterList();
+    }
+    
+    public FilterList quickCreateFilter(int value, int offset1, int offset2) {
+    	
+        String filterStr = StringUtils.leftPad("", radices.length, "*");
+        filterStr = filterStr.substring(0, offset1) + value + filterStr.substring(offset1 + 1);
+        filterStr = filterStr.substring(0, offset2) + value + filterStr.substring(offset2 + 1);
 
         return FilterListBuilder.newInstance()
                 .setQuick(filterStr)
