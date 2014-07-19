@@ -1,5 +1,6 @@
 package ethier.alex.resistance;
 
+import ethier.alex.world.core.data.Partition;
 import ethier.alex.world.sudoku.Sudoku;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
@@ -29,10 +30,10 @@ public class SudokuTest {
         System.out.println("");
         System.out.println("");
 
-        int[][] world = new int[9][9];
+        int[][] world = new int[4][4];
         
-        for(int row = 0; row < 9; row++) {
-            for(int col = 0; col < 9; col++) {
+        for(int row = 0; row < 4; row++) {
+            for(int col = 0; col < 4; col++) {
                 world[row][col] = 0;
             }
         }
@@ -40,5 +41,6 @@ public class SudokuTest {
         world[0][0] = 1;
         
         Sudoku game = new Sudoku(world);
+        Partition partition = game.createRootPartition();
     }
 }
