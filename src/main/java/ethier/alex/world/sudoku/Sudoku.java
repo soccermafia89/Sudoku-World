@@ -22,9 +22,11 @@ import org.apache.log4j.Logger;
 
 TODO: PLANS
 
+-Current plan fills each tile with one out of n numbers (n is board length).  Thus the number of states a board can take is
+
+n^(n^2) where n is board length.  This number grows FAST.
+
 -Use Guava Table interface to simplify data structures and put them into a double array row/col format.
--Come up with a recursive way to continually guess more cells if needed.  Guesses need to keep track of their state
-    so that they can properly be rolled back if determined to be invalid.
 
 */
 public final class Sudoku {
