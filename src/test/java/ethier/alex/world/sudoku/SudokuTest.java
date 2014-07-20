@@ -1,6 +1,8 @@
 package ethier.alex.world.sudoku;
 
 //package ethier.alex.resistance;
+
+
 //
 //import java.util.Collection;
 //import java.util.HashSet;
@@ -28,6 +30,7 @@ package ethier.alex.world.sudoku;
 //
 //    @BeforeClass
 //    public static void setUpClass() {
+//        BasicConfigurator.resetConfiguration(); // One of the transitive dependencies is messing with the logger configuration.
 //        BasicConfigurator.configure();
 //    }
 //

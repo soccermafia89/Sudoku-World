@@ -1,7 +1,6 @@
 package ethier.alex.world.sudoku;
 
 
-import ethier.alex.world.sudoku.Sudoku2;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,6 +16,7 @@ public class Sudoku2Test {
 
     @BeforeClass
     public static void setUpClass() {
+        BasicConfigurator.resetConfiguration(); // One of the transitive dependencies is messing with the logger configuration.
         BasicConfigurator.configure();
     }
 
